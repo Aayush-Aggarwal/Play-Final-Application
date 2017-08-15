@@ -1,0 +1,36 @@
+@(userForm :Form[SignUp])(implicit messages:Messages)
+
+@import helper._
+
+@main("SIGN UP PAGE"){
+
+@helper.form(action=routes.ApplicationController.signUpUser) {
+@helper.inputText(userForm("name.firstName"),'_showConstraints->false)
+@helper.inputText(userForm("name.middleName"),'_showConstraints->false)
+@helper.inputText(userForm("name.lastName"),'_showConstraints->false)
+@helper.inputText(userForm("age"),'_showConstraints->false)
+@helper.inputText(userForm("email"),'_showConstraints->false)
+@helper.inputText(userForm("password"),'_showConstraints->false)
+@helper.inputText(userForm("reCheckPassword"),'_showConstraints->false)
+@helper.inputText(userForm("address.street"),'_showConstraints->false)
+@helper.inputText(userForm("address.streetNo"),'_showConstraints->false)
+@helper.inputText(userForm("address.city"),'_showConstraints->false)
+@helper.select(userForm("gender"), options(List("Male", "Female")),
+'_showConstraints -> false, '_label -> "Gender")
+<!--
+@helper.inputText(userForm("gender"),'_showConstraints->false)
+-->
+@helper.inputText(userForm("phoneNumber"),'_showConstraints->false)
+<!--
+@helper.inputText(userForm("status"),'_showConstraints->false)
+-->
+@helper.select(userForm("status"), options(List("Single", "Married")),
+'_showConstraints -> false, '_label -> "status")
+@inputCheckboxGroup(
+userForm("hobbies"),
+options = hobbyList.map(hobby => hobby -> hobby),
+'_label -> "Hobbies",
+'_error -> userForm("hobbies").error.map(_.withMessage("Select atleast one hobby!")))
+<button value="Submit">Submit</button>
+}
+}

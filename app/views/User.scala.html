@@ -1,0 +1,16 @@
+@(userForm :Form[Login])(implicit messages:Messages,flash:Flash)
+
+@import helper._
+
+@main("Log In Page"){
+@flash.get("success").getOrElse(flash.get("error").getOrElse(""))
+
+@helper.form(action=routes.ApplicationController.loginUser) {
+@helper.inputText(userForm("name"),'_showConstraints->false)
+@helper.inputText(userForm("email"),'_showConstraints->false)
+@helper.inputText(userForm("userPassword"),'_showConstraints->false)
+<button value="Submit">Submit</button>
+}
+
+<a href="@routes.UpdateProfileController.updatePassword">Forgot Password</a>
+}
