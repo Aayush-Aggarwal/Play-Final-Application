@@ -2,9 +2,11 @@ package models
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.google.inject.Inject
+import controllers.{UpdatePassword, UpdateUserForm}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 import slick.lifted.ProvenShape
+import play.api.Logger
 
 import scala.concurrent.Future
 
@@ -19,10 +21,86 @@ class UserRepository @Inject()(protected val dbConfigProvider: DatabaseConfigPro
   def addNewUser(user: UserInfo): Future[Boolean] = {
     db.run(userQuery += user).map(_ > 0)
   }
-  def findByEmail (email: String): Future[Option[String]] = {
+
+  def findByEmail(email: String): Future[Option[String]] = {
     val query = userQuery.filter(_.email === email).map(_.email).result.headOption
     db.run(query)
   }
+
+  def checkIfUserExists(email: String, password: String): Future[Boolean] = {
+    Logger.info("Checking if user exists in Database")
+    val userList = db.run(userQuery.filter(_.email === email).to[List].result)
+    userList.map { user =>
+      if (user.isEmpty) {
+        false
+      }
+      else if (!BCrypt.checkpw(password, user.head.password)) {
+        false
+      }
+      else {
+        true
+      }
+    }
+  }
+
+  /*def getEmail(username: String): Future[String] = {
+    Logger.info("Sending data for maintaining session for user")
+    val userList: Future[List[User]] = db.run(userQuery.filter(_.username === username).to[List].result)
+    userList.map(user => user.head.email)
+  }*/
+
+  def getUser(email: String): Future[List[UserInfo]] = {
+    Logger.info("Retrieving user from database from email stored in session")
+    db.run(userQuery.filter(_.email === email).to[List].result)
+  }
+
+  def getUserByID(userID: Int): Future[List[UserInfo]] = {
+    Logger.info("Retrieving user from database from ID stored in session")
+    db.run(userQuery.filter(_.id === userID).to[List].result)
+  }
+
+  def getUserID(email: String): Future[List[Int]] = {
+    Logger.info("Getting user ID based on user E-mail")
+    db.run(userQuery.filter(_.email === email).map(_.id).to[List].result)
+  }
+
+  def updateUser(updateUser: UpdateUserForm, id: Int): Future[Boolean] = {
+    Logger.info("Updating user for given user ID")
+    db.run(userQuery.filter(_.id === id).map(user => (user.firstName, user.middleName, user.lastName,
+      user.phoneNo, user.gender, user.age)).update((updateUser.name.firstName, updateUser.name.middleName,
+      updateUser.name.lastName, updateUser.phoneNo, updateUser.gender, updateUser.age)))
+      .map(_ > 0)
+  }
+
+  def checkEmailForUpdate(email: String, id: Int): Future[Boolean] = {
+    Logger.info("Checking if email exists in database other than for the current user")
+    val emailList = db.run(userQuery.filter(user => user.email === email && user.id =!= id).to[List].result)
+    emailList.map { email =>
+      if (email.isEmpty) true else false
+    }
+  }
+
+  def updateUserByEmail(updatePassword: UpdatePassword): Future[Boolean] = {
+    Logger.info("Updating password for given user")
+    db.run(userQuery.filter(_.email === updatePassword.email).map(_.password).update(updatePassword.password)) map (_ > 0)
+  }
+
+  def getAllUsersWithStatus(id: Int): Future[Map[String, Boolean]] = {
+    db.run(userQuery.filter(_.id =!= id).map(user => (user.email, user.isEnabled)).sorted.to[List].result).map(_.toMap)
+  }
+
+  def enableUser(email: String, status: Boolean): Future[Boolean] = {
+    db.run(userQuery.filter(_.email === email).map(_.isEnabled).update(status)) map (_ > 0)
+  }
+
+  def getUserInfoForSession(email: String): Future[List[(Int, Boolean, Boolean)]] = {
+    Logger.info("Getting user ID and isAdmin for given user email if he's enabled")
+    db.run(userQuery.filter(_.email === email).map(user => (user.id, user.isAdmin, user.isEnabled)).to[List].result)
+
+  }
+
+
+
 }
 
 trait UserTable extends HasDatabaseConfigProvider[JdbcProfile] {
@@ -60,8 +138,12 @@ trait UserTable extends HasDatabaseConfigProvider[JdbcProfile] {
 
     def status: Rep[String] = column[String]("status")
 
+    def isAdmin: Rep[Boolean] = column[Boolean]("isadmin")
+
+    def isEnabled: Rep[Boolean] = column[Boolean]("isenabled")
+
     def * : ProvenShape[UserInfo] = (id, firstName, middleName, lastName, age, email, password,
-      street, streetNo, city, gender, phoneNo, status) <> (UserInfo.tupled, UserInfo.unapply)
+      street, streetNo, city, gender, phoneNo, status, isAdmin, isEnabled) <> (UserInfo.tupled, UserInfo.unapply)
 
   }
 

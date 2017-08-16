@@ -17,13 +17,10 @@
 @helper.inputText(userForm("address.city"),'_showConstraints->false)
 @helper.select(userForm("gender"), options(List("Male", "Female")),
 '_showConstraints -> false, '_label -> "Gender")
-<!--
 @helper.inputText(userForm("gender"),'_showConstraints->false)
--->
 @helper.inputText(userForm("phoneNumber"),'_showConstraints->false)
-<!--
 @helper.inputText(userForm("status"),'_showConstraints->false)
--->
+<!--
 @helper.select(userForm("status"), options(List("Single", "Married")),
 '_showConstraints -> false, '_label -> "status")
 @inputCheckboxGroup(
@@ -31,6 +28,8 @@ userForm("hobbies"),
 options = hobbyList.map(hobby => hobby -> hobby),
 '_label -> "Hobbies",
 '_error -> userForm("hobbies").error.map(_.withMessage("Select atleast one hobby!")))
+-->
+
 <button value="Submit">Submit</button>
 }
 }

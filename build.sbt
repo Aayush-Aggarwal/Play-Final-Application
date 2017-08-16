@@ -16,6 +16,10 @@ libraryDependencies += "com.typesafe.play" %% "play-slick-evolutions" % "2.0.0"
 libraryDependencies +=  "org.mockito" % "mockito-core" % "1.8.5" % "test"
 libraryDependencies += "org.postgresql" % "postgresql" % "42.1.4"
 libraryDependencies += "org.postgresql" % "postgresql" % "42.1.4"
+libraryDependencies += "org.mindrot" % "jbcrypt" % "0.4"
+libraryDependencies += specs2 % Test
+javaOptions in Test += "-Dconfig.file=conf/test.conf"
+
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.example.controllers._"

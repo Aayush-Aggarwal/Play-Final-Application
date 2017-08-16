@@ -13,6 +13,14 @@ case class Name(firstName: String, middleName: Option[String], lastName: String)
 
 case class UserAddress(street: String, streetNo: Int, city: String)
 
+case class UpdateUserForm(name: Name, phoneNo: Long,
+                          gender: String, age: Int, hobbies: List[Int])
+
+case class UpdatePassword(email: String, password: String, reCheckPassword: String)
+
+case class AddAssignment(title: String, description: String)
+
+
 case class SignUp(name: Name, age: Int, email: String, password: String, reCheckPassword: String,
                   address: UserAddress, gender: String, phoneNumber: Long, status: String)
 
@@ -61,7 +69,14 @@ class ApplicationForms {
       } else {
         Invalid(errors)
       }})
+
+  val addAssignmentForm = Form(mapping(
+    "title" -> nonEmptyText,
+    "description" -> nonEmptyText
+  )(AddAssignment.apply)(AddAssignment.unapply))
+
 }
+
 /*  .verifying("Failed form constraints!", fields => fields match {
       case login => validateData(login.name, login.age, login.email, login.userPassword).isDefined
     })
