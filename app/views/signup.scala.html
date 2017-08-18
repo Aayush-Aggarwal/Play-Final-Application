@@ -1,35 +1,46 @@
-@(userForm :Form[SignUp])(implicit messages:Messages)
+@(userForm :Form[SignUp], hobbyList: List[Hobby])(implicit messages:Messages, flash: Flash)
 
+<div >
+    <center>
+        <table class="table table-bordered" style="width:450px; text-align: center;">
+            <tr style="00back`ground-color:#0000cc; color:white;">
+                <th style="text-align: center;">Sign Up</th>
+            </tr>
+            <tr>
+                <td>
 @import helper._
 
 @main("SIGN UP PAGE"){
 
 @helper.form(action=routes.ApplicationController.signUpUser) {
-@helper.inputText(userForm("name.firstName"),'_showConstraints->false)
-@helper.inputText(userForm("name.middleName"),'_showConstraints->false)
-@helper.inputText(userForm("name.lastName"),'_showConstraints->false)
-@helper.inputText(userForm("age"),'_showConstraints->false)
-@helper.inputText(userForm("email"),'_showConstraints->false)
-@helper.inputText(userForm("password"),'_showConstraints->false)
-@helper.inputText(userForm("reCheckPassword"),'_showConstraints->false)
-@helper.inputText(userForm("address.street"),'_showConstraints->false)
-@helper.inputText(userForm("address.streetNo"),'_showConstraints->false)
-@helper.inputText(userForm("address.city"),'_showConstraints->false)
+@helper.inputText(userForm("name.firstName"),'_showConstraints->false,'_label -> "First Name")
+@helper.inputText(userForm("name.middleName"),'_showConstraints->false,'_label -> "Middle Name")
+@helper.inputText(userForm("name.lastName"),'_showConstraints->false,'_label -> "Last Name")
+@helper.inputText(userForm("age"),'_showConstraints->false,'_label -> "Age")
+@helper.inputText(userForm("email"),'_showConstraints->false,'_label -> "Email")
+@helper.inputPassword(userForm("password"),'_showConstraints->false,'_label -> "Password")
+@helper.inputPassword(userForm("reCheckPassword"),'_showConstraints->false,'_label -> "RePassword")
+@helper.inputText(userForm("address.street"),'_showConstraints->false,'_label -> "Street")
+@helper.inputText(userForm("address.streetNo"),'_showConstraints->false,'_label -> "Street Number")
+@helper.inputText(userForm("address.city"),'_showConstraints->false,'_label -> "City")
 @helper.select(userForm("gender"), options(List("Male", "Female")),
 '_showConstraints -> false, '_label -> "Gender")
-@helper.inputText(userForm("gender"),'_showConstraints->false)
 @helper.inputText(userForm("phoneNumber"),'_showConstraints->false)
-@helper.inputText(userForm("status"),'_showConstraints->false)
-<!--
-@helper.select(userForm("status"), options(List("Single", "Married")),
-'_showConstraints -> false, '_label -> "status")
+@helper.select(userForm("status"),options(List("single", "married")),
+'_showConstraints -> false, '_label -> "Status")
 @inputCheckboxGroup(
 userForm("hobbies"),
-options = hobbyList.map(hobby => hobby -> hobby),
+options = hobbyList.map(hobby => hobby.id.toString -> hobby.hobby),
 '_label -> "Hobbies",
 '_error -> userForm("hobbies").error.map(_.withMessage("Select atleast one hobby!")))
--->
 
 <button value="Submit">Submit</button>
 }
+@flash.get("error").getOrElse(flash.get("success").getOrElse(""))
+
 }
+                </td>
+            </tr>
+        </table>
+    </center>
+</div>

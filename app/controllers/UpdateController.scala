@@ -11,7 +11,7 @@ import play.api.mvc.{Action, AnyContent, Controller}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UpdateProfileController @Inject()(userRepository: UserRepository, hobbyRepository: HobbyRepository,
+class UpdateController @Inject()(userRepository: UserRepository, hobbyRepository: HobbyRepository,
                                         userHobbyRepository: UserHobbyRepository, allForms: ApplicationForms,
                                         val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
@@ -19,6 +19,7 @@ class UpdateProfileController @Inject()(userRepository: UserRepository, hobbyRep
   lazy val hobbiesList: Future[List[Hobby]] = hobbyRepository.getHobbies
 
   def showProfile: Action[AnyContent] = Action.async { implicit request =>
+    Logger.info("Show profile")
     val userIDString: Option[String] = request.session.get("userID")
     val isAdmin: Option[String] = request.session.get("isAdmin")
 
@@ -31,22 +32,23 @@ class UpdateProfileController @Inject()(userRepository: UserRepository, hobbyRep
 
           case Nil =>
             Logger.info("Did not receive any user with given UserID! Redirecting to welcome page!")
-            Future.successful(Redirect(routes.LoginController.login())
+            Future.successful(Redirect(routes.ApplicationController.loginUser())
               .flashing("error" -> "Did not find any user with the given information. Please login again."))
           case userList: List[UserInfo] =>
             val user = userList.head
             userHobbyRepository.getUserHobby(userID).flatMap {
               case Nil =>
                 Logger.info("Did not receive any hobbies for the user!")
-                Future.successful(Redirect(routes.LoginController.login())
+                Future.successful(Redirect(routes.ApplicationController.loginUser())
                   .flashing("error" -> "Something went wrong since we did not find any hobbies with the given information. Please login again."))
 
               case hobbies: List[Int] =>
                 Logger.info("Recieved list of hobbies")
                 val updateUserFormValues = UpdateUserForm(Name(user.firstName, user.middleName, user.lastName),
-                  user.phoneNumber, user.gender, user.age, hobbies)
+                  user.age, user.email, UserAddress(user.street, user.streetNo, user.city)
+                  , user.gender, user.phoneNumber , hobbies)
                 hobbiesList.map(hobbies =>
-                  Ok(views.html.userProfile(allForms.updateUserForm.fill(updateUserFormValues), hobbies, isAdmin))
+                  Ok(views.html.profile(allForms.updateUserForm.fill(updateUserFormValues), hobbies, isAdmin))
                 )
             }
         }
@@ -58,27 +60,34 @@ class UpdateProfileController @Inject()(userRepository: UserRepository, hobbyRep
     allForms.updateUserForm.bindFromRequest.fold(
       formWithErrors => {
         Logger.error("Form was submitted with errors " + formWithErrors)
-        hobbiesList.map(hobbies => BadRequest(views.html.userProfile(formWithErrors, hobbies, request.session.get("isAdmin"))))
+        hobbiesList.map(hobbies => BadRequest(views.html.profile(formWithErrors, hobbies, request.session.get("isAdmin"))))
       },
       updateUserData => {
         Logger.info("Form was successfully submitted")
         val optionOfID = request.session.get("userID")
         optionOfID match {
           case Some(userID) =>
-            val updateUserForm = UpdateUserForm(updateUserData.name, updateUserData.mobileNo
-              , updateUserData.gender, updateUserData.age, updateUserData.hobbies)
+            val updateUserForm = UpdateUserForm(Name(updateUserData.name.firstName,updateUserData.name.middleName
+              ,updateUserData.name.lastName),  updateUserData.age,updateUserData.email,
+              UserAddress(updateUserData.address.street,updateUserData.address.streetNo,updateUserData.address.city),
+               updateUserData.gender, updateUserData.phoneNumber,
+              updateUserData.hobbies)
+            Logger.info("update profile")
             userRepository.updateUser(updateUserForm, userID.toInt).flatMap {
-              case true =>
+             /* case true =>
+              Redirect(routes.UpdateController.showProfile).flashing("success" -> "User Profile successfully updated!")
+             */ case true =>
                 userHobbyRepository.deleteUserHobby(userID.toInt).flatMap {
                   case true =>
-                    userHobbyRepository.addUserHobby(userID.toInt, updateUserData.hobbies.map(_.toInt)).map {
-                      case true => Redirect(routes.UpdateProfileController.showProfile).flashing("success" -> "User Profile successfully updated!")
-                      case false => Redirect(routes.UpdateProfileController.showProfile).flashing("error" -> "Something went wrong!")
+                      userHobbyRepository.addUserHobby(userID.toInt, updateUserData.hobbies.map(_.toInt)).map {
+                      case true =>Logger.info("Updated")
+                        Redirect(routes.UpdateController.showProfile).flashing("success" -> "User Profile successfully updated!")
+                      case false => Redirect(routes.UpdateController.showProfile).flashing("error" -> "Something went wrong!")
                     }
-                  case false => Future.successful(Redirect(routes.UpdateProfileController.showProfile)
+                  case false => Future.successful(Redirect(routes.UpdateController.showProfile)
                     .flashing("error" -> "User Profile not updated due to errors!"))
                 }
-              case false => Future.successful(Redirect(routes.UpdateProfileController.showProfile).flashing("error" -> "Email already exists!"))
+              case false => Future.successful(Redirect(routes.UpdateController.showProfile).flashing("error" -> "Email already exists!"))
             }
           case None => Future.successful(Ok(views.html.index()))
         }
@@ -102,11 +111,12 @@ class UpdateProfileController @Inject()(userRepository: UserRepository, hobbyRep
         val updatePasswordForm = UpdatePassword(updatePasswordData.email, password, password)
         userRepository.updateUserByEmail(updatePasswordForm).map {
           case true =>
-            Redirect(routes.LoginController.login()).flashing("success" -> "Password successfully updated!")
+            Redirect(routes.DisplayView.logIn()).flashing("success" -> "Password successfully updated!")
           case false =>
-            Redirect(routes.UpdateProfileController.updatePassword()).
+            Redirect(routes.UpdateController.updatePassword).
               flashing("error" ->
-                "The email entered was either invalid or is not registered with us. Kindly consider registering first if this is your first time visiting the site.")
+                "The email entered was either invalid or is not registered with us.")
+
         }
       }
     )

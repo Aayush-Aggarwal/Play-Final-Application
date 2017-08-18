@@ -19,6 +19,7 @@ libraryDependencies += "org.postgresql" % "postgresql" % "42.1.4"
 libraryDependencies += "org.mindrot" % "jbcrypt" % "0.4"
 libraryDependencies += specs2 % Test
 javaOptions in Test += "-Dconfig.file=conf/test.conf"
+coverageExcludedPackages := "<empty>;Reverse.*;router\\.*"
 
 
 // Adds additional packages into Twirl

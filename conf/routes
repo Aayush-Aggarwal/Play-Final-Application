@@ -12,8 +12,17 @@ GET   /loginn                     controllers.DisplayView.logIn
 GET   /signupp                    controllers.DisplayView.signUp
 POST  /login                      controllers.ApplicationController.loginUser
 POST  /signup                     controllers.ApplicationController.signUpUser
+GET  /logout                     controllers.ApplicationController.logout
 GET   /enabledisable              controllers.EnableDisableController.showUserList
 POST  /enabledisablepost/:email   controllers.EnableDisableController.enableDisablePost(email: String)
+GET   /assignment                    controllers.AssignmentController.showAssignments
+GET    /addassignment                 controllers.AssignmentController.addAssignment
+POST   /deleteassignment/:id          controllers.AssignmentController.deleteAssignment(id: Int)
+POST    /addassignmentpost             controllers.AssignmentController.addAssignmentPost
+GET     /update                    controllers.UpdateController.showProfile
+POST     /updatepost                    controllers.UpdateController.showProfilePost
+GET     /password                    controllers.UpdateController.updatePassword
+POST     /passwordpost                    controllers.UpdateController.updatePasswordPost
 
 
 # Map static resources from the /public folder to the /assets URL path

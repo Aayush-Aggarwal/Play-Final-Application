@@ -3,6 +3,7 @@ package models
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.google.inject.Inject
 import controllers.{UpdatePassword, UpdateUserForm}
+import org.mindrot.jbcrypt.BCrypt
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 import slick.lifted.ProvenShape
@@ -12,7 +13,7 @@ import scala.concurrent.Future
 
 case class UserInfo(id: Int, firstName: String, middleName: Option[String], lastName: String,
                     age: Int, email: String, password: String, street: String, streetNo: Int, city: String,
-                    gender: String, phoneNumber: Long, status: String)
+                    gender: String, phoneNumber: Long, status: String, isAdmin:Boolean,isEnabled:Boolean)
 
 class UserRepository @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends UserTable {
 
@@ -22,9 +23,12 @@ class UserRepository @Inject()(protected val dbConfigProvider: DatabaseConfigPro
     db.run(userQuery += user).map(_ > 0)
   }
 
-  def findByEmail(email: String): Future[Option[String]] = {
-    val query = userQuery.filter(_.email === email).map(_.email).result.headOption
-    db.run(query)
+  def checkEmail(email: String): Future[Boolean] = {
+    Logger.info("Checking if email exists in Database")
+    val emailList = db.run(userQuery.filter(_.email === email).to[List].result)
+    emailList.map { email =>
+      if (email.isEmpty) true else false
+    }
   }
 
   def checkIfUserExists(email: String, password: String): Future[Boolean] = {
@@ -68,7 +72,7 @@ class UserRepository @Inject()(protected val dbConfigProvider: DatabaseConfigPro
     Logger.info("Updating user for given user ID")
     db.run(userQuery.filter(_.id === id).map(user => (user.firstName, user.middleName, user.lastName,
       user.phoneNo, user.gender, user.age)).update((updateUser.name.firstName, updateUser.name.middleName,
-      updateUser.name.lastName, updateUser.phoneNo, updateUser.gender, updateUser.age)))
+      updateUser.name.lastName, updateUser.phoneNumber, updateUser.gender, updateUser.age)))
       .map(_ > 0)
   }
 

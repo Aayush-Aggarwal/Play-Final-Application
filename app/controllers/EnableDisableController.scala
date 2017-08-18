@@ -11,7 +11,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class EnableDisableController @Inject()(userRepository: UserRepository, hobbyRepository: HobbyRepository,
-                                        userHobbyRepository: UserHobbyRepository, allForms: ApplicationForms, val messagesApi: MessagesApi) extends Controller with I18nSupport {
+                                        userHobbyRepository: UserHobbyRepository, allForms: ApplicationForms,
+                                        val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   implicit val messages: MessagesApi = messagesApi
 
@@ -31,14 +32,14 @@ class EnableDisableController @Inject()(userRepository: UserRepository, hobbyRep
     val value: Option[String] = request.body.asFormUrlEncoded.get("ableButton").headOption
     value match {
       case Some("enable") =>
-        userRepository.enableUser(email, true).map{
+        userRepository.enableUser(email, true).map {
           case true =>
             Redirect(routes.EnableDisableController.showUserList()).flashing("success" -> "User was successfully enabled.")
           case false =>
             Redirect(routes.EnableDisableController.showUserList()).flashing("error" -> "Something went wrong. User was not enabled.")
         }
       case Some("disable") =>
-        userRepository.enableUser(email, false).map{
+        userRepository.enableUser(email, false).map {
           case true =>
             Redirect(routes.EnableDisableController.showUserList()).flashing("success" -> "User was successfully disabled.")
           case false =>

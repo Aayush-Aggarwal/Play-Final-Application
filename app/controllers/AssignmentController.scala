@@ -30,6 +30,7 @@ class AssignmentController @Inject()(userRepository: UserRepository, hobbyReposi
     }
   }
 
+
   def deleteAssignment(assignmentID: Int): Action[AnyContent] = Action.async { implicit request =>
     val isAdmin = request.session.get("isAdmin")
     assignmentRepository.deleteAssignment(assignmentID).map {

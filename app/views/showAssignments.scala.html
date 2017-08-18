@@ -1,0 +1,31 @@
+@(assignments: List[Assignment], isAdmin: Option[String])(implicit messages: Messages)
+<div >
+    <center>
+        <table class="table table-bordered" style="width:450px; text-align: center;">
+            <tr style="00back`ground-color:#0000cc; color:white;">
+                <th style="text-align: center;">Sign Up</th>
+            </tr>
+            <tr>
+                <td>
+@if(isAdmin == Some("true")) {
+@adminNavbar("View Assignment")
+} else { @if(isAdmin == Some("false") || isAdmin == None) {
+@userNavbar("View Assignment")
+}}
+
+@main("Assignments") {
+
+@if(assignments.isEmpty) {
+<h1>No Assignments are currently there.</h1>
+} else {
+
+@for(assignment <- assignments) {
+@assignment.title, @assignment.description
+}
+}
+}
+                </td>
+            </tr>
+        </table>
+    </center>
+</div>
